@@ -5,7 +5,7 @@ Config.getInstance().registerDefault('FlareEffectTicksCount', 10);
 
 export class FlareEffect implements EffectType {
   readonly id = 'flare';
-  readonly name = 'Подсветка сингальной гранатой';
+  readonly name = 'Подсветка сигнальной гранатой';
 
   getTicksCount(): number {
     return Config.getInstance().get('FlareEffectTicksCount');
