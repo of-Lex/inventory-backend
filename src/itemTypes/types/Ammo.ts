@@ -9,7 +9,7 @@ export class Ammo implements ItemType {
   readonly maxStack = 30;
 
   onUse(world: World, player: Player, item: Item): boolean {
-    player.ammo += item.getAmount();
+    player.addAmmo(item.getAmount());
     return true;
   }
 }
