@@ -13,6 +13,9 @@
     "declaration": false,
     "declarationMap": false,
     "noUncheckedIndexedAccess": true,
+    
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
 
     "rootDir": "./src",
     "outDir": "./dist",
