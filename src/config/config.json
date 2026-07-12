@@ -1,0 +1,11 @@
+{
+  "PlayerMaxHealth": 100,
+  "PlayerMaxArmor": 100,
+  "BandageEffectTicksCount": 5,
+  "BandageHealPerTick": 10,
+  "FlareEffectTicksCount": 10,
+  "FlareRadius": 20,
+  "TickRate": 1,
+  "ItemPickupRadius": 5,
+  "GroundItemLifetime": 5000
+}
