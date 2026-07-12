@@ -8,10 +8,11 @@ Config.getInstance().registerDefault('BandageHealPerTick', 10)
 export class BandageEffect implements EffectType {
   readonly id = 'bandage';
   readonly name = 'Лечение бинтом';
-  readonly healPerTick = Config.getInstance().get('BandageHealPerTick');
+  private readonly healPerTick = Config.getInstance().get('BandageHealPerTick');
+  private readonly ticksCount = Config.getInstance().get('BandageEffectTicksCount');
 
   getTicksCount(): number {
-    return Config.getInstance().get('BandageEffectTicksCount');
+    return this.ticksCount;
   }
 
   onTick(players: Map<number, Player>): void {

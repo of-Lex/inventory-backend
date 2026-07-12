@@ -10,10 +10,10 @@ export class Flare implements ItemType {
   readonly id = 'flare';
   readonly name = 'Сигнальная граната';
   readonly maxStack = 5;
+  private readonly radius = Config.getInstance().get('FlareRadius');
 
   onDrop(world: World, player: Player, item: Item): boolean {
-    const radius = Config.getInstance().get('FlareRadius');
-    const nearPlayers = world.getNearPlayers(player.getPosition(), radius);
+    const nearPlayers = world.getNearPlayers(player.getPosition(), this.radius);
     world.addEffect(nearPlayers, 'flare');
     return true;
   }

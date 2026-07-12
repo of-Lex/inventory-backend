@@ -8,22 +8,22 @@ import { Tickable } from './Tickable.js';
 Config.getInstance().registerDefault('GroundItemLifetime', 5000)
 
 export class GroundItem extends Item implements Tickable {
+  public static readonly lifeTime = Config.getInstance().get('GroundItemLifetime');
+
   private readonly position: Position;
   public readonly droppedAt: number;
-  public readonly lifeTime: number;
   public lifeTimeLeft: number;
 
   constructor(id: number, typeId: ItemType, amount: number, x: number, y: number) {
     super(id, typeId, amount);
     this.position = { x, y };
     this.droppedAt = Date.now();
-    this.lifeTime = Config.getInstance().get('GroundItemLifetime')
-    this.lifeTimeLeft = this.lifeTime;
+    this.lifeTimeLeft = GroundItem.lifeTime;
     GameLoop.getInstance().subscribe(this);
   }
 
   isExpired(): boolean {
-    return Date.now() - this.droppedAt > this.lifeTime;
+    return Date.now() - this.droppedAt > GroundItem.lifeTime;
   }
 
   tick(deltaTime: number): void {
