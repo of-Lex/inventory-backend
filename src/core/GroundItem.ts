@@ -1,6 +1,6 @@
 import { Config } from '../config/Config.js';
 import { ItemType } from '../itemTypes/ItemType.js';
-import { Position } from '../utils/Position.js';
+import { Position } from '../types/Position.js';
 import { GameLoop } from './GameLoop.js';
 import { Item } from './Item.js';
 import { Tickable } from './Tickable.js';
