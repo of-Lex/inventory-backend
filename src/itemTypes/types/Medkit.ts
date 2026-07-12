@@ -1,0 +1,16 @@
+import { Config } from '../../config/Config.js';
+import { Player } from '../../core/Player.js';
+import { World } from '../../core/World.js';
+import { ItemType } from './../ItemType.js';
+
+export class Medkit implements ItemType {
+  readonly id = 'medkit';
+  readonly name = 'Аптечка';
+  readonly maxStack = 1;
+
+  onUse(world: World, player: Player): boolean {
+    const playerMaxHealth = Config.getInstance().get('PlayerMaxHealth');
+    player.setHealth(playerMaxHealth);
+    return true;
+  }
+}
