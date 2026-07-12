@@ -1,4 +1,4 @@
-import { Position } from "./Position.js";
+import { Position } from "../types/Position.js";
 
 export class Utils {
   private constructor() { }
