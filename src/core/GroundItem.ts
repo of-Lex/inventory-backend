@@ -8,7 +8,7 @@ import { Tickable } from './Tickable.js';
 Config.getInstance().registerDefault('GroundItemLifetime', 5000)
 
 export class GroundItem extends Item implements Tickable {
-  public readonly position: Position;
+  private readonly position: Position;
   public readonly droppedAt: number;
   public readonly lifeTime: number;
   public lifeTimeLeft: number;
@@ -29,5 +29,9 @@ export class GroundItem extends Item implements Tickable {
   tick(deltaTime: number): void {
     // this.lifeTimeLeft = this.lifeTime - (Date.now() - this.droppedAt);
     this.lifeTimeLeft -= deltaTime;
+  }
+
+  getPosition(): Position {
+    return this.position;
   }
 }
