@@ -16,7 +16,7 @@ export class BandageEffect implements EffectType {
 
   onTick(players: Map<number, Player>): void {
     for(const player of players.values()) {
-      player.setHealth(player.health + this.healPerTick);
+      player.setHealth(player.getHealth() + this.healPerTick);
     }
   }
 }

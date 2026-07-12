@@ -12,7 +12,7 @@ export class Flare implements ItemType {
 
   onDrop(world: World, player: Player): boolean {
     const radius = Config.getInstance().get('FlareRadius');
-    const nearPlayers = world.getPlayersNear(player.position, radius);
+    const nearPlayers = world.getPlayersNear(player.getPosition(), radius);
     world.addEffect(nearPlayers, 'flare');
     return true;
   }
