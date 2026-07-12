@@ -50,6 +50,11 @@ export class World implements Tickable {
     return this.players.get(playerId);
   }
 
+  getPlayerInventory(playerId: number): Item[] | undefined {
+    const player = this.getPlayer(playerId);
+    if(player) return player.getInventory();
+  }
+
   getAllPlayers(): Map<number, Player> {
     return this.players;
   }
@@ -172,6 +177,21 @@ export class World implements Tickable {
   }
 
   //
+
+  createGroundItem(typeId: string, position: Position, amount: number = 1): boolean {
+    const itemType = this.itemTypes.get(typeId);
+    if(!itemType)return false;
+    if(amount > itemType.maxStack)return false;
+    const groundItem = new GroundItem(
+      itemAutoIncrement++,
+      itemType,
+      amount,
+      position.x,
+      position.y
+    )
+    this.groundItems.set(groundItem.id, groundItem);
+    return true;
+  }
 
   getAllGroundItems(): Map<number, GroundItem> {
     return this.groundItems;
