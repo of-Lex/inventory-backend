@@ -11,7 +11,7 @@ export class Bandage implements ItemType {
   onUse(world: World, player: Player, item: Item): boolean {
     const players: Map<number, Player> = new Map();
     players.set(player.id, player);
-    world.addEffect(players, 'bandage');
+    world.addEffectForPlayers(players, 'bandage');
     return true;
   }
 }
