@@ -7,5 +7,5 @@
   "FlareRadius": 20,
   "TickRate": 1,
   "ItemPickupRadius": 5,
-  "GroundItemLifetime": 5000
+  "GroundItemLifeTime": 60000
 }

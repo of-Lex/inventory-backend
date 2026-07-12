@@ -5,10 +5,10 @@ import { GameLoop } from './GameLoop.js';
 import { Item } from './Item.js';
 import { Tickable } from './Tickable.js';
 
-Config.getInstance().registerDefault('GroundItemLifetime', 5000)
+Config.getInstance().registerDefault('GroundItemLifeTime', 60000)
 
 export class GroundItem extends Item implements Tickable {
-  public static readonly lifeTime = Config.getInstance().get('GroundItemLifetime');
+  public static readonly lifeTime = Config.getInstance().get('GroundItemLifeTime');
 
   private readonly position: Position;
   public readonly droppedAt: number;
