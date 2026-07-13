@@ -20,49 +20,49 @@ async function autoTests(world: World) {
 	printTickInfo();
 	let autoTestsInterval = setInterval(printTickInfo, 1000)
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testWorld.createGroundItem('burger', { x: 3, y: 3 }, 1, 20000);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testWorld.createPlayer('Алексей', { x: 0, y: 0 }); // id 1
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testWorld.createPlayer('Максим', { x: 2, y: 2 }); // id 2
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testWorld.createPlayer('Евгений', { x: 25, y: 25 }); // id 3
 
 	const player = world.getPlayerById(1);
 	const concurentPlayer = world.getPlayerById(2);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testUseMedkitWith100HP(world, player);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testUseMedkitWith50HP(world, player);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testUseBandageWith10HP(world, player);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testDropFlare(world, player);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testItemStacks(world, player);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testItemStacks2(world, player);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testUseAmmo(world, player);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testArmor(world, player);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testConcurentPickupItem(world, player, concurentPlayer);
 
-	await Utils.sleep(2500);
+	await Utils.sleep(2222);
 	await testGroundItemLifeTimeEnd(world);
 
 	Utils.logWithTime('')
@@ -137,8 +137,8 @@ function printGroundItemInfo(world: World, groundItem: GroundItem | undefined): 
 
 async function testUseMedkitWith100HP(world: World, player: Player | undefined): Promise<void> {
 	Utils.logWithTime('')
-	Utils.logWithTime('🤖 ТЕСТ 1: Аптечка (здоровье 100)');
-	let testSuccess = 5
+	Utils.logWithTime('🤖 ТЕСТ 1: Double Use Аптечка (здоровье 100)');
+	let testSuccess = 6
 	if(player) {
 		player.setHealth(100);
 		const playerInventory = player.getInventory();
@@ -152,10 +152,21 @@ async function testUseMedkitWith100HP(world: World, player: Player | undefined):
 				const getPlayerItem = playerInventory.find(i => i.type.id === 'medkit')
 				if(getPlayerItem) {
 					testSuccess--;
-					Utils.logWithTime(`Игрок использует аптечку`);
-					const useItemResult = await world.useItem(1, getPlayerItem.id);
-					if(useItemResult) {
-						Utils.logWithTime(`Игрок успешно использовал аптечку`);
+					Utils.logWithTime(`Игрок дважды использует аптечку`);
+					const [useItemResult1, useItemResult2] = await Promise.all([
+						world.useItem(1, getPlayerItem.id),
+						world.useItem(1, getPlayerItem.id),
+					]);
+					if(useItemResult1) {
+						Utils.logWithTime(`Игрок успешно использовал аптечку первый раз`);
+						printPlayerInfo(world, player);
+						testSuccess--;
+					}
+					if(useItemResult2) {
+						Utils.logWithTime(`Игрок успешно использовал ту же аптечку второй раз`);
+						printPlayerInfo(world, player);
+					} else {
+						Utils.logWithTime(`Игрок не смог использовать ту же аптечку второй раз`);
 						printPlayerInfo(world, player);
 						testSuccess--;
 					}
@@ -241,8 +252,8 @@ async function testUseBandageWith10HP(world: World, player: Player | undefined):
 
 async function testDropFlare(world: World, player: Player | undefined): Promise<void> {
 	Utils.logWithTime('')
-	Utils.logWithTime('🤖 ТЕСТ 4: Drop Item + Подсветка сигнальной гранатой');
-	let testSuccess = 4
+	Utils.logWithTime('🤖 ТЕСТ 4: Double Drop Item + Подсветка сигнальной гранатой');
+	let testSuccess = 5
 	if(player) {
 		const playerInventory = player.getInventory();
 		if(playerInventory) {
@@ -255,10 +266,21 @@ async function testDropFlare(world: World, player: Player | undefined): Promise<
 				const getPlayerItem = playerInventory.find(i => i.type.id === 'flare')
 				if(getPlayerItem) {
 					testSuccess--;
-					Utils.logWithTime(`Игрок выбрасывает сигнальную гранату`);
-					const dropItemResult = await world.dropItem(1, getPlayerItem.id);
-					if(dropItemResult) {
-						Utils.logWithTime(`Игрок успешно выбросил сигнальную гранату`);
+					Utils.logWithTime(`Игрок дважды выбрасывает сигнальную гранату`);
+					const [dropItemResult1, dropItemResult2] = await Promise.all([
+						world.dropItem(1, getPlayerItem.id),
+						world.dropItem(1, getPlayerItem.id)
+					]);
+					if(dropItemResult1) {
+						Utils.logWithTime(`Игрок успешно выбросил сигнальную гранату первый раз`);
+						printPlayerInfo(world, player);
+						testSuccess--;
+					}
+					if(dropItemResult2) {
+						Utils.logWithTime(`Игрок успешно выбросил ту же сигнальную гранату второй раз`);
+						printPlayerInfo(world, player);
+					} else {
+						Utils.logWithTime(`Игрок не смог выбросить ту же сигнальную гранату второй раз`);
 						printPlayerInfo(world, player);
 						testSuccess--;
 					}

@@ -126,24 +126,37 @@ export class World implements Tickable {
     const item = player.findItem(itemId);
     if(!item)return false;
 
-    const position = player.getPosition();
-    const groundItem = new GroundItem(
-      itemId,
-      item.type,
-      item.getAmount(),
-      position.x,
-      position.y
-    );
-    const storageResult = await this.storage.createGroundItem(groundItem);
-    if(!storageResult)return false;
-    player.removeItem(itemId);
-    this.groundItems.set(groundItem.id, groundItem);
-    if(item.type.onDrop) {
-      item.type.onDrop(this, player, item);
+    if(item.isBlocked())return false;
+
+    item.setBlocked(true);
+
+    try {
+      const position = player.getPosition();
+      const groundItem = new GroundItem(
+        itemId,
+        item.type,
+        item.getAmount(),
+        position.x,
+        position.y
+      );
+      const storageResult = await this.storage.createGroundItem(groundItem);
+      if(!storageResult)return false;
+      player.removeItem(itemId);
+      this.groundItems.set(groundItem.id, groundItem);
+      if(item.type.onDrop) {
+        item.type.onDrop(this, player, item);
+      }
+      await this.storage.deleteItem(groundItem);
+      await this.storage.savePlayer(player);
+      return true;
+    } catch(error) {
+      return false;
+    } finally {
+      const findItem = player.findItem(item.id);
+      if(findItem) {
+        item.setBlocked(false);
+      }
     }
-    await this.storage.deleteItem(groundItem);
-    await this.storage.savePlayer(player);
-    return true;
   }
 
   async pickupItem(playerId: number, groundItemId: number): Promise<boolean> {
@@ -156,9 +169,9 @@ export class World implements Tickable {
     const dist = Utils.getDistance(player.getPosition(), groundItem.getPosition());
     if(dist > Item.pickupRadius)return false;
 
-    if(groundItem.isPickupBlocked())return false;
+    if(groundItem.isBlocked())return false;
 
-    groundItem.setPickupBlocked(true);
+    groundItem.setBlocked(true);
 
     try {
       const item = new Item(
@@ -177,7 +190,7 @@ export class World implements Tickable {
       return false;
     } finally {
       if(this.groundItems.has(groundItem.id)) {
-        groundItem.setPickupBlocked(false);
+        groundItem.setBlocked(false);
       }
     }
   }
@@ -193,11 +206,24 @@ export class World implements Tickable {
     if(!type)return false;
     if(!type.onUse)return false;
 
-    type.onUse(this, player, item);
-    player.removeItem(itemId);
-    await this.storage.deleteItem(item);
-    await this.storage.savePlayer(player);
-    return true;
+    if(item.isBlocked())return false;
+
+    item.setBlocked(true);
+
+    try {
+      type.onUse(this, player, item);
+      player.removeItem(itemId);
+      await this.storage.deleteItem(item);
+      await this.storage.savePlayer(player);
+      return true;
+    } catch(error) {
+      return false;
+    } finally {
+      const findItem = player.findItem(item.id);
+      if(findItem) {
+        item.setBlocked(false);
+      }
+    }
   }
 
   public addEffectForPlayers(players: Map<number, Player>, effectTypeId: string): Effect | null {

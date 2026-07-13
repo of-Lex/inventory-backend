@@ -9,6 +9,7 @@ export class Item {
   public readonly id: number;
   public readonly type: ItemType;
   private amount: number;
+  private _isBlocked: boolean = false;
 
   constructor(id: number, type: ItemType, amount: number = 1) {
     this.id = id;
@@ -22,5 +23,13 @@ export class Item {
 
   addAmount(value: number): void {
     this.amount += Math.max(0, value);
+  }
+
+  isBlocked(): boolean {
+    return this._isBlocked;
+  }
+
+  setBlocked(pickupBlocked: boolean): void {
+    this._isBlocked = pickupBlocked;
   }
 }
