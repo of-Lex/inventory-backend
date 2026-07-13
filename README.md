@@ -20,7 +20,7 @@
 ### Клонирование репозитория:
 Для клонирования репозитория, выполните команду:
 ```sh
-$ git clone git@github.com:of-Lex/inventory-backend.git
+$ git clone https://github.com/of-Lex/inventory-backend.git
 ```
 
 ### Установка зависимостей
