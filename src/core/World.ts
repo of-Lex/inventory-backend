@@ -156,18 +156,30 @@ export class World implements Tickable {
     const dist = Utils.getDistance(player.getPosition(), groundItem.getPosition());
     if(dist > Item.pickupRadius)return false;
 
-    const item = new Item(
-      groundItemId,
-      groundItem.type,
-      groundItem.getAmount()
-    );
-    const storageResult = await this.storage.createItem(groundItem);
-    if(!storageResult)return false;
-    this.groundItems.delete(groundItemId);
-    player.addItem(item);
-    await this.storage.deleteGroundItem(groundItem);
-    await this.storage.savePlayer(player);
-    return true;
+    if(groundItem.isPickupBlocked())return false;
+
+    groundItem.setPickupBlocked(true);
+
+    try {
+      const item = new Item(
+        groundItemId,
+        groundItem.type,
+        groundItem.getAmount()
+      );
+      const storageResult = await this.storage.createItem(groundItem);
+      if(!storageResult)return false;
+      this.groundItems.delete(groundItemId);
+      player.addItem(item);
+      await this.storage.deleteGroundItem(groundItem);
+      await this.storage.savePlayer(player);
+      return true;
+    } catch(error) {
+      return false;
+    } finally {
+      if(this.groundItems.has(groundItem.id)) {
+        groundItem.setPickupBlocked(false);
+      }
+    }
   }
 
   async useItem(playerId: number, itemId: number): Promise<boolean> {

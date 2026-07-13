@@ -383,10 +383,11 @@ async function testConcurentPickupItem(world: World, player: Player | undefined,
 			let nearGroundItems = world.getNearGroundItems(player.getPosition(), Item.pickupRadius);
 			for(let groundItem of nearGroundItems.values()) {
 				if(groundItem && groundItem.type.id === 'flare') {
-					Utils.logWithTime(`Игрок ID 1 пытается поднять ранее выброшенную сигнальную гранату`);
-					const playerPickupFlareResult = await world.pickupItem(player.id, groundItem.id);
-					Utils.logWithTime(`Игрок ID 2 пытается конкурентно поднять ранее выброшенную сигнальную гранату Игроком ID ${player.id}`);
-					const concurentPlayerPickupFlareResult = await world.pickupItem(concurentPlayer.id, groundItem.id);
+					Utils.logWithTime(`Игрок ID 1 и Игрок ID 2 пытаются одновременно поднять ранее выброшенную сигнальную гранату`);
+					const [playerPickupFlareResult, concurentPlayerPickupFlareResult] = await Promise.all([
+						world.pickupItem(player.id, groundItem.id),
+						world.pickupItem(concurentPlayer.id, groundItem.id)
+					]);
 					if(playerPickupFlareResult) {
 						testSuccess--;
 						Utils.logWithTime(`Игрок ID ${player.id} успешно подобрал ранее выброшенную сигнальную гранату`);

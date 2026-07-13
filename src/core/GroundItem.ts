@@ -10,6 +10,7 @@ Config.getInstance().registerDefault('GroundItemLifeTime', 60000)
 export class GroundItem extends Item implements Tickable {
   public static readonly lifeTime = Config.getInstance().get('GroundItemLifeTime');
 
+  private _isPickupBlocked: boolean = false;
   private readonly position: Position;
   public lifeTimeLeft: number;
 
@@ -33,5 +34,13 @@ export class GroundItem extends Item implements Tickable {
 
   getPosition(): Position {
     return this.position;
+  }
+
+  isPickupBlocked(): boolean {
+    return this._isPickupBlocked;
+  }
+
+  setPickupBlocked(pickupBlocked: boolean): void {
+    this._isPickupBlocked = pickupBlocked;
   }
 }
