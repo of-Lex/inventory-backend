@@ -1,5 +1,6 @@
 import { Config } from '../config/Config.js';
 import { Tickable } from './Tickable.js';
+import { Utils } from './Utils.js';
 
 Config.getInstance().registerDefault('TickRate', 1);
 
@@ -8,13 +9,12 @@ export class GameLoop {
   private static instance: GameLoop | null = null;
 
   private tickables: Tickable[] = [];
-  private isRunning: boolean = false;
+  private _isRunning: boolean = false;
   private lastTickTime: number = 0;
   private tickCounter: number = 0;
+  private timeout: NodeJS.Timeout | null = null;
 
-  private constructor() {
-    GameLoop.instance = this;
-  }
+  private constructor() { }
 
   public static getInstance(): GameLoop {
     if(!GameLoop.instance) {
@@ -35,20 +35,28 @@ export class GameLoop {
   }
 
   public start(): void {
-    if(this.isRunning)return;
-    this.isRunning = true;
+    if(this.isRunning())return;
+    this._isRunning = true;
     this.lastTickTime = Date.now();
-    console.log(`GameLoop started on ${GameLoop.tickRate}/sec tick rate`);
+    Utils.logWithTime(`GameLoop started on ${GameLoop.tickRate}/sec tick rate`);
     this.loop();
   }
 
   stop(): void {
-    this.isRunning = false;
-    console.log('GameLoop stopped');
+    this._isRunning = false;
+    if(this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+    Utils.logWithTime('GameLoop stopped');
+  }
+
+  isRunning(): boolean {
+    return this._isRunning;
   }
 
   private loop(): void {
-    if(!this.isRunning)return;
+    if(!this.isRunning())return;
 
     const now = Date.now();
     const deltaTime = now - this.lastTickTime;
@@ -60,7 +68,7 @@ export class GameLoop {
 
     this.tickCounter++;
 
-    setTimeout(() => this.loop(), 1000 / GameLoop.tickRate);
+    this.timeout = setTimeout(() => this.loop(), 1000 / GameLoop.tickRate);
   }
 
   public getGurrentTick(): number {
