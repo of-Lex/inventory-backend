@@ -20,10 +20,10 @@ export class Player {
   private inventory: Item[] = [];
   public effects: Map<EffectType, Effect> = new Map();
 
-  constructor(id: number, name: string, x: number, y: number) {
+  constructor(id: number, name: string, position: Position) {
     this.id = id;
     this.name = name;
-    this.position = { x, y };
+    this.position = position;
   }
 
   getPosition(): Position {
@@ -66,13 +66,12 @@ export class Player {
     this.inventory.push(item);
   }
 
-  removeItem(itemId: number): boolean {
+  removeItem(itemId: number): void {
     const itemSlot = this.inventory.findIndex(item => item.id === itemId);
-    if(itemSlot === -1)return false;
+    if(itemSlot === -1)return;
     const item = this.inventory[itemSlot];
-    if(!item)return false;
+    if(!item)return;
     this.inventory.splice(itemSlot, 1);
-    return true;
   }
 
   findItem(itemId: number): Item | undefined {
