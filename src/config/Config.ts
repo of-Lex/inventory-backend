@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { Utils } from '../core/Utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,11 +19,10 @@ export class Config {
       for(let configName in data) {
         this.configData[configName] = data[configName]
       }
-      console.log('Config config.json loaded');
+      Utils.logWithTime('Config config.json loaded');
     } catch (error) {
-      console.warn('File config.json not found. Generating default config...');
+      Utils.logWithTime('File config.json not found. Generating default config...');
     }
-    Config.instance = this;
   }
 
   public static getInstance(): Config {
@@ -44,12 +44,12 @@ export class Config {
         this.configData[configName] = value;
         const json = JSON.stringify(this.configData, null, 2);
         writeFileSync(this.configPath, json, 'utf-8');
-        console.log(`Config registered: ${configName} = ${JSON.stringify(value)}`);
+        Utils.logWithTime(`Config registered: ${configName} = ${JSON.stringify(value)}`);
       } catch (error) {
-        console.error(`Error config registering: ${configName} ${error}`);
+        Utils.logWithTime(`ERROR config registering: ${configName} ${error}`);
       }
     } else {
-      console.log(`Config loaded: ${configName} = ${JSON.stringify(value)}`);
+      Utils.logWithTime(`Config loaded: ${configName} = ${JSON.stringify(value)}`);
     }
   }
 }
