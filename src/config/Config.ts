@@ -44,12 +44,12 @@ export class Config {
         this.configData[configName] = value;
         const json = JSON.stringify(this.configData, null, 2);
         writeFileSync(this.configPath, json, 'utf-8');
-        Utils.logWithTime(`Config registered: ${configName} = ${JSON.stringify(value)}`);
+        Utils.logWithTime(`Config registered: ${configName} = ${JSON.stringify(this.configData[configName])}`);
       } catch (error) {
         Utils.logWithTime(`ERROR config registering: ${configName} ${error}`);
       }
     } else {
-      Utils.logWithTime(`Config loaded: ${configName} = ${JSON.stringify(value)}`);
+      Utils.logWithTime(`Config loaded: ${configName} = ${JSON.stringify(this.configData[configName])}`);
     }
   }
 }
