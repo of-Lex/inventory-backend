@@ -11,24 +11,24 @@ export class GroundItem extends Item implements Tickable {
   public static readonly lifeTime = Config.getInstance().get('GroundItemLifeTime');
 
   private readonly position: Position;
-  public readonly droppedAt: number;
   public lifeTimeLeft: number;
 
-  constructor(id: number, typeId: ItemType, amount: number, x: number, y: number) {
-    super(id, typeId, amount);
+  constructor(id: number, type: ItemType, amount: number, x: number, y: number, lifeTime: number = GroundItem.lifeTime) {
+    super(id, type, amount);
     this.position = { x, y };
-    this.droppedAt = Date.now();
-    this.lifeTimeLeft = GroundItem.lifeTime;
+    this.lifeTimeLeft = lifeTime;
     GameLoop.getInstance().subscribe(this);
   }
 
   isExpired(): boolean {
-    return Date.now() - this.droppedAt > GroundItem.lifeTime;
+    return this.lifeTimeLeft <= 0;
   }
 
-  tick(deltaTime: number): void {
-    // this.lifeTimeLeft = this.lifeTime - (Date.now() - this.droppedAt);
-    this.lifeTimeLeft -= deltaTime;
+  async tick(deltaTime: number): Promise<void> {
+    this.lifeTimeLeft -= deltaTime
+    if(this.lifeTimeLeft <= 0) {
+      this.lifeTimeLeft = 0
+    }
   }
 
   getPosition(): Position {

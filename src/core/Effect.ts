@@ -18,7 +18,7 @@ export class Effect implements Tickable {
     GameLoop.getInstance().subscribe(this);
   }
 
-  public tick(deltaTime: number): void {
+  async tick(deltaTime: number): Promise<void> {
     this.ticksLeft--;
 
     if(this.type.onTick) {
