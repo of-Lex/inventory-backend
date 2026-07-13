@@ -2,6 +2,7 @@ import { EffectType } from '../effectTypes/EffectType.js';
 import { ALL_EFFECT_TYPES } from '../effectTypes/Registrator.js';
 import { ItemType } from '../itemTypes/ItemType.js';
 import { ALL_ITEM_TYPES } from '../itemTypes/Registrator.js';
+import { Storage } from '../storage/Storage.js';
 import { Position } from '../types/Position.js';
 import { Effect } from './Effect.js';
 import { GameLoop } from './GameLoop.js';
@@ -11,15 +12,18 @@ import { Player } from './Player.js';
 import { Tickable } from './Tickable.js';
 import { Utils } from './Utils.js';
 
-let itemAutoIncrement: number = 1
-
 export class World implements Tickable {
+  private static playerAutoIncrement: number = 1;
+  private static itemAutoIncrement: number = 1;
+
+  private storage: Storage;
   private itemTypes: Map<string, ItemType> = new Map();
   private effectTypes: Map<string, EffectType> = new Map();
   private players: Map<number, Player> = new Map();
   public groundItems: Map<number, GroundItem> = new Map();
 
-  constructor() {
+  constructor(storage: Storage) {
+    this.storage = storage;
     for(const itemType of ALL_ITEM_TYPES) {
       this.registerItemType(itemType);
     }
@@ -41,17 +45,25 @@ export class World implements Tickable {
 
   //
 
-  addPlayer(player: Player): void {
+  async createPlayer(name: string, position: Position): Promise<boolean> {
+    const player = new Player(
+      World.playerAutoIncrement++,
+      name,
+      position
+    )
+    const storageResult = await this.storage.createPlayer(player);
+    if(!storageResult)return false;
     this.players.set(player.id, player);
+    return true;
   }
 
-  getPlayer(playerId: number): Player | undefined {
+  getPlayerById(playerId: number): Player | undefined {
     if(!this.players.has(playerId))return undefined;
     return this.players.get(playerId);
   }
 
   getPlayerInventory(playerId: number): Item[] | undefined {
-    const player = this.getPlayer(playerId);
+    const player = this.getPlayerById(playerId);
     if(player) return player.getInventory();
   }
 
@@ -72,7 +84,7 @@ export class World implements Tickable {
     return nearPlayers;
   }
 
-  giveItem(playerId: number, typeId: string, amount: number = 1): boolean {
+  async giveItem(playerId: number, typeId: string, amount: number = 1): Promise<boolean> {
     const player = this.players.get(playerId);
     if(!player)return false;
     const itemType = this.itemTypes.get(typeId);
@@ -92,43 +104,49 @@ export class World implements Tickable {
       } else {
         const realItemAmount = amount > itemType.maxStack ? itemType.maxStack : amount;
         const item = new Item(
-          itemAutoIncrement++,
+          World.itemAutoIncrement++,
           itemType,
           realItemAmount
         )
-        amount -= realItemAmount;
-        player.addItem(item);
+        const storageResult = await this.storage.createItem(item);
+        if(storageResult) {
+          amount -= realItemAmount;
+          player.addItem(item);
+        }
       }
     }
+    await this.storage.savePlayer(player);
     return true;
   }
 
-  dropItem(playerId: number, itemId: number): boolean {
+  async dropItem(playerId: number, itemId: number): Promise<boolean> {
     const player = this.players.get(playerId);
     if(!player)return false;
 
     const item = player.findItem(itemId);
     if(!item)return false;
 
-    if(player.removeItem(itemId)) {
-      const position = player.getPosition();
-      const groundItem = new GroundItem(
-        itemId,
-        item.type,
-        item.getAmount(),
-        position.x,
-        position.y
-      );
-      this.groundItems.set(groundItem.id, groundItem);
-      if(item.type.onDrop) {
-        item.type.onDrop(this, player, item);
-      }
-      return true;
+    const position = player.getPosition();
+    const groundItem = new GroundItem(
+      itemId,
+      item.type,
+      item.getAmount(),
+      position.x,
+      position.y
+    );
+    const storageResult = await this.storage.createGroundItem(groundItem);
+    if(!storageResult)return false;
+    player.removeItem(itemId);
+    this.groundItems.set(groundItem.id, groundItem);
+    if(item.type.onDrop) {
+      item.type.onDrop(this, player, item);
     }
-    return false;
+    await this.storage.deleteItem(groundItem);
+    await this.storage.savePlayer(player);
+    return true;
   }
 
-  pickupItem(playerId: number, groundItemId: number): boolean {
+  async pickupItem(playerId: number, groundItemId: number): Promise<boolean> {
     const player = this.players.get(playerId);
     if(!player)return false;
 
@@ -138,19 +156,21 @@ export class World implements Tickable {
     const dist = Utils.getDistance(player.getPosition(), groundItem.getPosition());
     if(dist > Item.pickupRadius)return false;
 
-    if(this.groundItems.delete(groundItemId)) {
-      const item = new Item(
-        groundItemId,
-        groundItem.type,
-        groundItem.getAmount()
-      );
-      player.addItem(item);
-      return true;
-    }
-    return false;
+    const item = new Item(
+      groundItemId,
+      groundItem.type,
+      groundItem.getAmount()
+    );
+    const storageResult = await this.storage.createItem(groundItem);
+    if(!storageResult)return false;
+    this.groundItems.delete(groundItemId);
+    player.addItem(item);
+    await this.storage.deleteGroundItem(groundItem);
+    await this.storage.savePlayer(player);
+    return true;
   }
 
-  useItem(playerId: number, itemId: number): boolean {
+  async useItem(playerId: number, itemId: number): Promise<boolean> {
     const player = this.players.get(playerId);
     if(!player)return false;
 
@@ -163,6 +183,8 @@ export class World implements Tickable {
 
     type.onUse(this, player, item);
     player.removeItem(itemId);
+    await this.storage.deleteItem(item);
+    await this.storage.savePlayer(player);
     return true;
   }
 
@@ -178,17 +200,20 @@ export class World implements Tickable {
 
   //
 
-  createGroundItem(typeId: string, position: Position, amount: number = 1): boolean {
+  async createGroundItem(typeId: string, position: Position, amount: number, lifeTime = GroundItem.lifeTime): Promise<boolean> {
     const itemType = this.itemTypes.get(typeId);
     if(!itemType)return false;
     if(amount > itemType.maxStack)return false;
     const groundItem = new GroundItem(
-      itemAutoIncrement++,
+      World.itemAutoIncrement++,
       itemType,
       amount,
       position.x,
-      position.y
+      position.y,
+      lifeTime
     )
+    const storageResult = await this.storage.createGroundItem(groundItem);
+    if(!storageResult)return false;
     this.groundItems.set(groundItem.id, groundItem);
     return true;
   }
@@ -212,17 +237,16 @@ export class World implements Tickable {
 
   //
 
-  tick(deltaTime: number): void {
-    const forRemove: number[] = [];
+  async tick(deltaTime: number): Promise<void> {
+    const forRemove: Map<number, GroundItem> = new Map();
     for(const [id, groundItem] of this.groundItems) {
       if(groundItem.isExpired()) {
-        forRemove.push(id);
+        forRemove.set(id, groundItem);
       }
     }
-    for(const id of forRemove) {
-      if(this.groundItems.has(id)) {
-        this.groundItems.delete(id);
-      }
+    for(const groundItem of forRemove.values()) {
+      await this.storage.deleteGroundItem(groundItem);
+      this.groundItems.delete(groundItem.id);
     }
   }
 }
